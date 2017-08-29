@@ -1,0 +1,185 @@
+---
+title: 'HW 1'
+output: word_document
+---
+
+This course is focused on extending the regular linear model to provide inferences like what you have seen for fixed effects while allowing for some violations of assumptions for the linear model such as independence of observations, that the residuals have constant variance, and that quantitative predictors have linear relationships with the mean response. We'll discuss methods for relaxing the linearity assumption using Generalized Additive Models (GAMs). The other modifications fall within what are called extended regression or mixed or hierarchical linear models.
+
+For any homework assignment, you can work in groups (some will be required to work in groups) and you can use resources from previous courses and the internet to complete this assignment. My main rule about other resources or other collaboration is that need to document it.
+
+Homework for STAT 448 is required to be concise but not necessarily all typed. Expedience and clarity are your main goals. Some questions will require more developed written answers but most will focus on calculations, obtaining results from R, and including just the pertinent components of the results in the HW. Often, including your R code in an appendix or inline will be required. We will do a project during the semester where you will get to write a report but homework will rarely have the short report format from 411/511.
+
+Within Rstudio, you can use integrated typesetting programs such as "knitR" to generate your homework and run R code simultaneously. A newer approach is using R-markdown and I would prefer that you learn to use it Rstudio (open the .Rmd type files or read about it at http://www.rstudio.com/ide/docs/authoring/using_markdown). 
+At a minimum, I highly recommend that you learn to use R-studio (http://www.rstudio.com/products/rstudio/download/) for your work in R. It is the best interface I have used, providing an efficient platform for managing your R code and results.
+
+The first HW assignment will be a review of methods that you should have learned in STAT 411/511 as well as warming up R-skills for use during the rest of the semester and introducing some issues we will confront directly in this class. 
+
+You will be working with a data set on trees from a forest in Idaho.
+Install and load the spuRs package and the ufc data set:
+`require(spuRs)`
+`data(ufc)`
+
+You will be considering tree height as the response variable and exploring the ability of the remaining variables to explain that response.
+
+This document started as an R-Markdown document that is provided on D2L (HW1.Rmd). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. In Rstudio, when you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this that will run once you have the `spuRs` package installed (`install.packages("spuRs")` or use the Packages tab to install the package).
+
+```{r warning=F,message=F}
+if(!require(spuRs)){install.packages("spuRs")};library(spuRs)
+data(ufc) #Note that we will often work with `tibbles` instead of data.frames - to be discussed in class
+?ufc
+table(ufc$plot,ufc$tree) #You can comment this out of your homework when you turn it in.
+ufc$treeid <- interaction(ufc$plot,ufc$tree) #Explore to see what this created
+ufc$treeid #this creates a unique identifier for each tree by assigning a value to each tree/plot combination. 
+
+head(ufc)
+tail(ufc)
+summary(ufc)
+#You may want to run other code or use View(ufc) to help answer the question
+
+numObs <- function(x){length(unique(x))} #returns the number of unique observations for each variable
+naCheck <- function(x){which(is.na(x) == TRUE)} #returns index of NA's if there are any
+
+apply(ufc,2,numObs) #how many of each level of variable
+apply(ufc,2,naCheck) #finds no missing data
+
+#tree_ID exploration: We have duplicate observations for several trees for some reason
+which(duplicated(ufc$treeid)==TRUE)
+ufc[113:118,]
+
+
+
+```
+
+1a) Use this information to briefly describe each variable in the data set. Make sure to note the sample size and whether any observations were missing.
+
+__There are six variables in the dataset. First, there were 132 different plots in the dataset. There were 10 tree types of 4 different species. __
+
+
+__There were also duplicate observations for the following trees in the dataset: __ 
+
++ __Tree ID# 43.6__
++ __Tree ID# 44.1__
++ __Tree ID# 44.2__
+
+
+1b) Then generate __ONE__ appropriate graphical summary for each variable in the data set except for treeid. These are displays of one variable at a time, not of relationships of variables or of differences in a variable based on another variable. Label axes using xlab and ylab with meaningful labels.
+
+```{r warning=FALSE,message=FALSE}
+#Code for plots follows
+library(ggplot2)
+
+#plot
+x <- ggplot(ufc)
+#tree
+x <- 
+
+#species
+x <- 
+
+
+#dbh.cm
+ufc$new.color <- ifelse(ufc$dbh.cm > 70, "tomato2","black")
+x + geom_boxplot(aes(x = "", y = dbh.cm), color = new.color)
+
+#height.m
+x + geom_boxplot(aes(x = "", y = height.m), fill = "orange2", color = "blue4") + theme_bw() + ggtitle("Height of Trees") + ylab("Height in meters")
+
+
+
+
+
+```
+
+
+2) Make a scatter plot of tree height vs tree diameter. Write a couple of sentences to describe the relationship between the variables. Include the plot in your answer.
+
+```{r}
+# Code for plot here
+plot <- ggplot(ufc) + geom_point(aes(x = height.m, y = dbh.cm), color = "blue3") + theme_classic() + ggtitle("Tree Height vs. Tree Diameter") + xlab("Height (meters)") + ylab("Diameter (cm)") 
+
+#add smooth line:
+a <- smooth.spline(ufc$height.m, ufc$dbh.cm)
+plot + geom_smooth(aes(x = height.m, y = dbh.cm), color = "tomato")
+  
+  geom_line(aes(x = a$x, y = a$y), color = "tomato", size= 1.5)
+
+
+
+```
+ 
+
+3) Fit the SLR with tree height as the response and tree diameter as the explanatory variable. 
+a) Report the coefficient table for the model from R using the `summary(modelname)`.
+
+```{r}
+ #Code to fit model here
+mod.1 <- lm(height.m ~ dbh.cm, data = ufc)
+summary(mod.1)$coef #gives the table (could also use coef(model.1))
+
+```
+
+
+
+ b) Write out the estimated model (be precise with your notation here and define any variables that you use). You can add "hats" by hand if that is helpful. But in R-markdown, you can leverage latex equations such as: $\hat{\mu}(.|.)=$
+
+
+c) Interpret the two coefficients in the model in the context of the problem.
+ + 
+ 
+ + 
+
+4) The assumptions for SLR are that the observations (and residuals) are independent, that the residuals follow a normal distribution, that the variance is constant, and that all the observations are sampled from the same population. It is also problematic to have influential observations distorting the fitted model and we assume that there no highly influential points causing problems.
+
+The diagnostic plots from the model in number 3 are provided below based running `par(mfrow=c(2,2)); plot(modelname)`. I saved the results in a PNG graphic called msdiagnosticplot.png and then read it in below so you can have example of this (it is useful if you create something outside R or want to tinker with plot sizing by hand). This will provide the four standard residual diagnostic plots.
+
+![](http://www.math.montana.edu/courses/s217/documents/msdiagnosticplot.png)
+
+a) Discuss what is being presented in each plot and what assumptions each helps you to assess.
+
+- Residuals vs fitted: 
+  
+- Scale-location: 
+
+- Normal QQ: 
+
+- Residuals vs Leverage: 
+
+b) Then discuss what you find specifically in each plot. What problems are there with the assumptions for the model fit in number 3 based on these plots?
+
+- Residuals vs fitted:  
+  
+- Scale-location: 
+  
+- Normal QQ: 
+
+- Residuals vs Leverage: 
+
+
+5) I fit a linear model with tree height as the response variable, tree diameter and species as additive explanatory variables. The coefficient table is provided here:
+```{r}
+#Code to fit model here 
+```
+
+ a) Write out the estimated model, defining all the variables in the model and being careful with your notation, taking the time to carefully define any indicator or dummy variables you use.
+
+
+b) Interpret the estimated coefficient in the speciesWC line. (Do not discuss the test, just the estimated coefficient.) 
+
+
+c) The p-value for this coefficient is reported to be 0.0413. What is the value of the test statistic, its distribution under the null hypothsis, and what hypothesis was this testing?
+
+6) The following results contain the ANOVA table for the previous model:
+
+```
+Anova Table (Type II tests)
+
+Response: height.m
+           Sum Sq  Df  F value    Pr(>F)    
+dbh.cm    10779.4   1 523.5400 < 2.2e-16 ***
+species     421.0   3   6.8162 0.0001805 ***
+Residuals  6815.1 331                       
+```
+a) What hypotheses are being tested in the `species` row? 
+
+
+b) What is the distribution of the test statistic in the `species` row under the null hypothesis if all assumptions of the model are met?
